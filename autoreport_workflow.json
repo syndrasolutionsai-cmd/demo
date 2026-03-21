@@ -1,0 +1,464 @@
+{
+  "name": "AutoReport — Clínica Dental Sonrisas",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-1-manual-trigger",
+      "name": "🚀 Iniciar Demo",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "agency_name",
+              "name": "agencia",
+              "value": "Momentum Digital",
+              "type": "string"
+            },
+            {
+              "id": "client_name",
+              "name": "cliente",
+              "value": "Clínica Dental Sonrisas",
+              "type": "string"
+            },
+            {
+              "id": "client_city",
+              "name": "ciudad_cliente",
+              "value": "Barcelona",
+              "type": "string"
+            },
+            {
+              "id": "report_week",
+              "name": "semana_reporte",
+              "value": "10–16 Marzo 2025",
+              "type": "string"
+            },
+            {
+              "id": "google_spend",
+              "name": "google_gasto",
+              "value": 1247,
+              "type": "number"
+            },
+            {
+              "id": "google_impressions",
+              "name": "google_impresiones",
+              "value": 48320,
+              "type": "number"
+            },
+            {
+              "id": "google_clicks",
+              "name": "google_clicks",
+              "value": 1891,
+              "type": "number"
+            },
+            {
+              "id": "google_conversions",
+              "name": "google_conversiones",
+              "value": 23,
+              "type": "number"
+            },
+            {
+              "id": "google_cpa",
+              "name": "google_cpa",
+              "value": 54.2,
+              "type": "number"
+            },
+            {
+              "id": "google_ctr",
+              "name": "google_ctr",
+              "value": 3.91,
+              "type": "number"
+            },
+            {
+              "id": "google_spend_prev",
+              "name": "google_gasto_anterior",
+              "value": 1180,
+              "type": "number"
+            },
+            {
+              "id": "google_conv_prev",
+              "name": "google_conversiones_anteriores",
+              "value": 19,
+              "type": "number"
+            },
+            {
+              "id": "meta_spend",
+              "name": "meta_gasto",
+              "value": 830,
+              "type": "number"
+            },
+            {
+              "id": "meta_reach",
+              "name": "meta_alcance",
+              "value": 31200,
+              "type": "number"
+            },
+            {
+              "id": "meta_clicks",
+              "name": "meta_clicks",
+              "value": 743,
+              "type": "number"
+            },
+            {
+              "id": "meta_leads",
+              "name": "meta_leads",
+              "value": 18,
+              "type": "number"
+            },
+            {
+              "id": "meta_cpl",
+              "name": "meta_cpl",
+              "value": 46.1,
+              "type": "number"
+            },
+            {
+              "id": "meta_spend_prev",
+              "name": "meta_gasto_anterior",
+              "value": 790,
+              "type": "number"
+            },
+            {
+              "id": "meta_leads_prev",
+              "name": "meta_leads_anteriores",
+              "value": 14,
+              "type": "number"
+            },
+            {
+              "id": "objetivo_mes",
+              "name": "objetivo_conversiones_mes",
+              "value": 80,
+              "type": "number"
+            },
+            {
+              "id": "progreso_actual",
+              "name": "progreso_conversiones",
+              "value": 41,
+              "type": "number"
+            },
+            {
+              "id": "progreso_pct",
+              "name": "progreso_porcentaje",
+              "value": 51,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-2-set-datos",
+      "name": "📊 Datos del Cliente",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.N8N_CLAUDE_API_KEY }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-5\",\n  \"max_tokens\": 1000,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Eres el account manager senior de Momentum Digital, una agencia de marketing digital en Madrid. Tu cliente es Clínica Dental Sonrisas en Barcelona. Escribe un resumen semanal del rendimiento de sus campañas de publicidad de la semana {{ $json.semana_reporte }}.\\n\\nDATOS DE LA SEMANA:\\n\\nGOOGLE ADS:\\n- Inversión: {{ $json.google_gasto }}€ (semana anterior: {{ $json.google_gasto_anterior }}€)\\n- Impresiones: {{ $json.google_impresiones }}\\n- Clicks: {{ $json.google_clicks }} (CTR: {{ $json.google_ctr }}%)\\n- Pacientes nuevos captados: {{ $json.google_conversiones }} (semana anterior: {{ $json.google_conversiones_anteriores }})\\n- Coste por paciente: {{ $json.google_cpa }}€\\n\\nMETA ADS (Facebook e Instagram):\\n- Inversión: {{ $json.meta_gasto }}€ (semana anterior: {{ $json.meta_gasto_anterior }}€)\\n- Personas alcanzadas: {{ $json.meta_alcance }}\\n- Clics: {{ $json.meta_clicks }}\\n- Solicitudes de cita recibidas: {{ $json.meta_leads }} (semana anterior: {{ $json.meta_leads_anteriores }})\\n- Coste por solicitud: {{ $json.meta_cpl }}€\\n\\nOBJETIVO DEL MES: {{ $json.objetivo_conversiones_mes }} pacientes nuevos en total\\nPROGRESO ACTUAL: {{ $json.progreso_conversiones }} de {{ $json.objetivo_conversiones_mes }} ({{ $json.progreso_porcentaje }}% del objetivo, con el 51% del mes transcurrido)\\n\\nEscribe el resumen con EXACTAMENTE esta estructura:\\n\\nResumen Semanal — {{ $json.semana_reporte }}\\n\\n✅ Lo que funcionó esta semana\\n[2-3 puntos concretos con datos numéricos, explicados como para un dentista, no un marketero]\\n\\n⚠️ Lo que ajustamos\\n[1-2 puntos explicando cambios que hiciste, sin tecnicismos]\\n\\n🎯 Plan para la próxima semana\\n[2-3 acciones concretas que vas a ejecutar]\\n\\n[Nota de cierre breve y motivacional, máximo 2 frases]\\n\\nTono: cercano, profesional, optimista. Como si se lo escribieras a un amigo que tiene una clínica dental. Sin siglas de marketing (CTR, CPC, CPM). Usa términos como 'pacientes captados', 'coste por paciente nuevo', 'solicitudes de cita'. Máximo 350 palabras.\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "node-3-claude-api",
+      "name": "🤖 Claude AI — Genera Resumen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "claude_summary",
+              "name": "resumen_claude",
+              "value": "={{ $json.content[0].text }}",
+              "type": "string"
+            },
+            {
+              "id": "html_report",
+              "name": "html_reporte",
+              "value": "=<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Reporte Semanal — Clínica Dental Sonrisas</title>\n  <link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap\" rel=\"stylesheet\">\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body { font-family: 'Inter', Arial, sans-serif; background: #f9fafb; color: #1f2937; }\n    .wrapper { max-width: 680px; margin: 0 auto; background: #ffffff; }\n    /* HEADER */\n    .header { background: #1a73e8; padding: 36px 40px; }\n    .header-logo { font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px; }\n    .header-logo span { color: #93c5fd; }\n    .header-subtitle { font-size: 13px; color: #bfdbfe; margin-top: 4px; font-weight: 500; }\n    .header-client { margin-top: 20px; }\n    .header-client-name { font-size: 26px; font-weight: 700; color: #ffffff; }\n    .header-client-date { font-size: 14px; color: #bfdbfe; margin-top: 4px; }\n    .header-badge { display: inline-block; background: rgba(255,255,255,0.2); color: #ffffff; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-top: 10px; }\n    /* SECTION */\n    .section { padding: 32px 40px; }\n    .section-title { font-size: 13px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }\n    /* METRICS CARDS */\n    .cards-grid { display: flex; gap: 16px; }\n    .card { flex: 1; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }\n    .card-header { padding: 14px 20px; font-size: 13px; font-weight: 700; color: #ffffff; }\n    .card-header.google { background: #1a73e8; }\n    .card-header.meta { background: #1877f2; }\n    .card-body { padding: 20px; }\n    .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; }\n    .metric-row:last-child { border-bottom: none; }\n    .metric-label { font-size: 13px; color: #6b7280; }\n    .metric-value { font-size: 15px; font-weight: 700; color: #1f2937; }\n    .badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-left: 8px; }\n    .badge.up { background: #d1fae5; color: #065f46; }\n    .badge.down { background: #fee2e2; color: #991b1b; }\n    /* PROGRESS BAR */\n    .progress-section { background: #f0f7ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 24px; }\n    .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }\n    .progress-title { font-size: 14px; font-weight: 700; color: #1f2937; }\n    .progress-numbers { font-size: 14px; font-weight: 600; color: #1a73e8; }\n    .progress-bar-bg { background: #dbeafe; border-radius: 99px; height: 12px; overflow: hidden; }\n    .progress-bar-fill { background: linear-gradient(90deg, #1a73e8, #3b82f6); height: 100%; border-radius: 99px; width: 51%; }\n    .progress-footer { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #6b7280; }\n    /* SUMMARY */\n    .summary-box { background: #f9fafb; border-left: 4px solid #1a73e8; border-radius: 0 8px 8px 0; padding: 24px; white-space: pre-wrap; font-size: 14px; line-height: 1.8; color: #374151; }\n    /* DIVIDER */\n    .divider { height: 1px; background: #e5e7eb; margin: 0 40px; }\n    /* FOOTER */\n    .footer { background: #1f2937; padding: 28px 40px; }\n    .footer-agency { font-size: 16px; font-weight: 700; color: #ffffff; }\n    .footer-info { font-size: 13px; color: #9ca3af; margin-top: 8px; line-height: 1.8; }\n    .footer-disclaimer { font-size: 11px; color: #6b7280; margin-top: 16px; border-top: 1px solid #374151; padding-top: 16px; }\n  </style>\n</head>\n<body>\n  <div class=\"wrapper\">\n\n    <!-- HEADER -->\n    <div class=\"header\">\n      <div class=\"header-logo\">MOMENTUM<span>DIGITAL</span></div>\n      <div class=\"header-subtitle\">Agencia de Performance Marketing · Madrid</div>\n      <div class=\"header-client\">\n        <div class=\"header-client-name\">Clínica Dental Sonrisas</div>\n        <div class=\"header-client-date\">Reporte Semanal · Semana del 10 al 16 de Marzo, 2025</div>\n        <div class=\"header-badge\">📊 Informe Automático Semanal</div>\n      </div>\n    </div>\n\n    <!-- METRICS -->\n    <div class=\"section\">\n      <div class=\"section-title\">Rendimiento de Campañas</div>\n      <div class=\"cards-grid\">\n\n        <!-- GOOGLE ADS -->\n        <div class=\"card\">\n          <div class=\"card-header google\">🔵 Google Ads</div>\n          <div class=\"card-body\">\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Inversión</span>\n              <span class=\"metric-value\">1.247€ <span class=\"badge up\">▲ 5.7%</span></span>\n            </div>\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Pacientes captados</span>\n              <span class=\"metric-value\">23 <span class=\"badge up\">▲ 21%</span></span>\n            </div>\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Coste por paciente</span>\n              <span class=\"metric-value\">54,20€</span>\n            </div>\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Clicks totales</span>\n              <span class=\"metric-value\">1.891</span>\n            </div>\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Impresiones</span>\n              <span class=\"metric-value\">48.320</span>\n            </div>\n          </div>\n        </div>\n\n        <!-- META ADS -->\n        <div class=\"card\">\n          <div class=\"card-header meta\">🔷 Meta Ads</div>\n          <div class=\"card-body\">\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Inversión</span>\n              <span class=\"metric-value\">830€ <span class=\"badge up\">▲ 5.1%</span></span>\n            </div>\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Solicitudes de cita</span>\n              <span class=\"metric-value\">18 <span class=\"badge up\">▲ 28.6%</span></span>\n            </div>\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Coste por solicitud</span>\n              <span class=\"metric-value\">46,10€</span>\n            </div>\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Clicks totales</span>\n              <span class=\"metric-value\">743</span>\n            </div>\n            <div class=\"metric-row\">\n              <span class=\"metric-label\">Personas alcanzadas</span>\n              <span class=\"metric-value\">31.200</span>\n            </div>\n          </div>\n        </div>\n\n      </div>\n    </div>\n\n    <div class=\"divider\"></div>\n\n    <!-- PROGRESS -->\n    <div class=\"section\">\n      <div class=\"section-title\">Objetivo del Mes</div>\n      <div class=\"progress-section\">\n        <div class=\"progress-header\">\n          <div class=\"progress-title\">🎯 Meta: 80 pacientes nuevos en marzo</div>\n          <div class=\"progress-numbers\">41 / 80</div>\n        </div>\n        <div class=\"progress-bar-bg\">\n          <div class=\"progress-bar-fill\"></div>\n        </div>\n        <div class=\"progress-footer\">\n          <span>51% del objetivo conseguido</span>\n          <span>✅ Ritmo correcto (51% del mes transcurrido)</span>\n        </div>\n      </div>\n    </div>\n\n    <div class=\"divider\"></div>\n\n    <!-- CLAUDE SUMMARY -->\n    <div class=\"section\">\n      <div class=\"section-title\">Análisis de tu Account Manager</div>\n      <div class=\"summary-box\">{{ $('🤖 Claude AI — Genera Resumen').item.json.content[0].text }}</div>\n    </div>\n\n    <div class=\"divider\"></div>\n\n    <!-- FOOTER -->\n    <div class=\"footer\">\n      <div class=\"footer-agency\">Momentum Digital</div>\n      <div class=\"footer-info\">\n        📍 Calle Gran Vía 45, 3ª planta · 28013 Madrid<br>\n        📧 hola@momentumdigital.es · 📞 +34 91 234 56 78<br>\n        🌐 www.momentumdigital.es\n      </div>\n      <div class=\"footer-disclaimer\">\n        Este reporte ha sido generado automáticamente por AutoReport, el sistema de informes de Momentum Digital. \n        Los datos proceden directamente de las plataformas publicitarias y se actualizan cada lunes a las 08:00h.\n        Para cualquier consulta, contacta con tu account manager en hola@momentumdigital.es\n      </div>\n    </div>\n\n  </div>\n</body>\n</html>",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-4-build-html",
+      "name": "📧 Construye HTML del Reporte",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $env.DEMO_EMAIL }}",
+        "subject": "=📊 Reporte Semanal | Clínica Dental Sonrisas | Semana 10–16 Mar 2025",
+        "emailType": "html",
+        "message": "={{ $json.html_reporte }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "node-5-gmail",
+      "name": "📨 Gmail — Envía Reporte",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1120, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "airtable_cliente",
+              "name": "airtable_cliente",
+              "value": "Clínica Dental Sonrisas",
+              "type": "string"
+            },
+            {
+              "id": "airtable_agencia",
+              "name": "airtable_agencia",
+              "value": "Momentum Digital",
+              "type": "string"
+            },
+            {
+              "id": "airtable_fecha_envio",
+              "name": "airtable_fecha_envio",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "airtable_reporte_generado",
+              "name": "airtable_reporte_generado",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "airtable_email_destino",
+              "name": "airtable_email_destino",
+              "value": "={{ $env.DEMO_EMAIL }}",
+              "type": "string"
+            },
+            {
+              "id": "airtable_resumen_preview",
+              "name": "airtable_resumen_preview",
+              "value": "={{ $('🤖 Claude AI — Genera Resumen').item.json.content[0].text.substring(0, 100) }}...",
+              "type": "string"
+            },
+            {
+              "id": "airtable_gasto_total",
+              "name": "airtable_gasto_total_eur",
+              "value": 2077,
+              "type": "number"
+            },
+            {
+              "id": "airtable_conversiones_total",
+              "name": "airtable_conversiones_total",
+              "value": 41,
+              "type": "number"
+            },
+            {
+              "id": "airtable_proxima_ejecucion",
+              "name": "airtable_proxima_ejecucion",
+              "value": "={{ (() => { const d = new Date(); d.setDate(d.getDate() + (8 - d.getDay()) % 7 || 7); d.setHours(8,0,0,0); return d.toISOString(); })() }}",
+              "type": "string"
+            },
+            {
+              "id": "airtable_tabla",
+              "name": "airtable_tabla_destino",
+              "value": "Reportes Enviados",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-6-airtable-log",
+      "name": "🗄️ Registro Airtable (simulado)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1340, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "confirmacion_estado",
+              "name": "estado",
+              "value": "success",
+              "type": "string"
+            },
+            {
+              "id": "confirmacion_mensaje",
+              "name": "mensaje",
+              "value": "=✅ Reporte generado y enviado correctamente a Clínica Dental Sonrisas — {{ new Date().toLocaleString('es-ES', {timeZone: 'Europe/Madrid', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'}) }}",
+              "type": "string"
+            },
+            {
+              "id": "confirmacion_cliente",
+              "name": "cliente",
+              "value": "Clínica Dental Sonrisas",
+              "type": "string"
+            },
+            {
+              "id": "confirmacion_email",
+              "name": "enviado_a",
+              "value": "={{ $env.DEMO_EMAIL }}",
+              "type": "string"
+            },
+            {
+              "id": "confirmacion_semana",
+              "name": "semana",
+              "value": "10–16 Marzo 2025",
+              "type": "string"
+            },
+            {
+              "id": "confirmacion_tiempo_total",
+              "name": "tiempo_generacion",
+              "value": "Menos de 30 segundos (vs. 3-4 horas manualmente)",
+              "type": "string"
+            },
+            {
+              "id": "confirmacion_airtable",
+              "name": "registrado_en_airtable",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "confirmacion_proxima",
+              "name": "proxima_ejecucion",
+              "value": "Lunes próximo a las 08:00h (automático)",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-7-confirmacion",
+      "name": "✅ Confirmación Final",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1560, 400]
+    }
+  ],
+  "connections": {
+    "🚀 Iniciar Demo": {
+      "main": [
+        [
+          {
+            "node": "📊 Datos del Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Datos del Cliente": {
+      "main": [
+        [
+          {
+            "node": "🤖 Claude AI — Genera Resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🤖 Claude AI — Genera Resumen": {
+      "main": [
+        [
+          {
+            "node": "📧 Construye HTML del Reporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📧 Construye HTML del Reporte": {
+      "main": [
+        [
+          {
+            "node": "📨 Gmail — Envía Reporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📨 Gmail — Envía Reporte": {
+      "main": [
+        [
+          {
+            "node": "🗄️ Registro Airtable (simulado)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🗄️ Registro Airtable (simulado)": {
+      "main": [
+        [
+          {
+            "node": "✅ Confirmación Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-03-17T08:00:00.000Z",
+      "updatedAt": "2025-03-17T08:00:00.000Z",
+      "id": "autoreport-demo",
+      "name": "AutoReport Demo"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2025-03-17T08:00:00.000Z",
+  "versionId": "autoreport-v1-demo"
+}
