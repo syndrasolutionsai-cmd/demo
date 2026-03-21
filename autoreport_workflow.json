@@ -270,7 +270,7 @@
             {
               "id": "airtable_email_destino",
               "name": "airtable_email_destino",
-              "value": "={{ $env.DEMO_EMAIL }}",
+              "value": "TU_EMAIL@gmail.com",
               "type": "string"
             },
             {
