@@ -171,10 +171,6 @@
             {
               "name": "content-type",
               "value": "application/json"
-            },
-            {
-              "name": "x-api-key",
-              "value": "={{ $env.N8N_CLAUDE_API_KEY }}"
             }
           ]
         },
@@ -187,7 +183,13 @@
       "name": "🤖 Claude AI — Genera Resumen",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [680, 400]
+      "position": [680, 400],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API Key (x-api-key)"
+        }
+      }
     },
     {
       "parameters": {
@@ -217,7 +219,7 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $env.DEMO_EMAIL }}",
+        "sendTo": "TU_EMAIL@gmail.com",
         "subject": "=📊 Reporte Semanal | Clínica Dental Sonrisas | Semana 10–16 Mar 2025",
         "emailType": "html",
         "message": "={{ $json.html_reporte }}",

@@ -26,34 +26,38 @@
 
 ---
 
-## PASO 2 — Configurar Variables de Entorno
+## PASO 2 — Crear la Credencial de Anthropic en n8n
 
-Necesitas configurar **2 variables de entorno** en n8n:
+> n8n bloquea el acceso a variables de entorno (`$env`) en nodos HTTP Request por seguridad.
+> La API key se guarda como **credencial cifrada** en n8n. Así es como se hace:
 
-### Si usas n8n Cloud:
-1. Ve a **Settings → Variables** (menú lateral izquierdo)
-2. Haz clic en **"Add variable"**
-3. Añade las dos variables:
-
-| Nombre | Valor | Descripción |
-|--------|-------|-------------|
-| `N8N_CLAUDE_API_KEY` | `sk-ant-api03-XXXX...` | Tu API Key de Anthropic |
-| `DEMO_EMAIL` | `tu@email.com` | Tu email donde recibirás el reporte |
-
-### Si usas n8n Self-hosted:
-Añade al archivo `.env` de tu instalación:
-```bash
-N8N_CLAUDE_API_KEY=sk-ant-api03-XXXXXXXXXXXXXXXX
-DEMO_EMAIL=tu@email.com
-```
-Reinicia n8n después de editar el `.env`.
-
-### Obtener tu API Key de Anthropic:
+### 2a — Obtener tu API Key de Anthropic
 1. Ve a [console.anthropic.com](https://console.anthropic.com)
 2. Navega a **API Keys** en el menú lateral
 3. Haz clic en **"Create Key"**
 4. Copia la key (empieza por `sk-ant-api03-`)
 5. ⚠️ Asegúrate de tener saldo o un plan activo (mínimo $5 de crédito)
+
+### 2b — Crear la credencial "Header Auth" en n8n
+1. En n8n, ve al menú lateral → **Credentials**
+2. Haz clic en **"Add credential"**
+3. Busca y selecciona **"Header Auth"**
+4. Rellena los campos:
+   - **Name** (nombre de la credencial): `Anthropic API Key (x-api-key)`
+   - **Name** (nombre del header): `x-api-key`
+   - **Value**: `sk-ant-api03-XXXXXXXXXXXXXXXX` ← tu API key real
+5. Haz clic en **"Save"**
+
+### 2c — Conectar la credencial al nodo Claude
+1. Abre el workflow importado
+2. Haz clic sobre el nodo **"🤖 Claude AI — Genera Resumen"**
+3. En el panel derecho, campo **"Credential"**, selecciona la credencial recién creada: `Anthropic API Key (x-api-key)`
+4. Guarda el nodo
+
+### 2d — Configurar tu email en el nodo Gmail
+1. Haz clic sobre el nodo **"📨 Gmail — Envía Reporte"**
+2. En el campo **"To"**, reemplaza `TU_EMAIL@gmail.com` con tu email real
+3. Guarda el nodo
 
 ---
 
@@ -76,10 +80,9 @@ El nodo **"Gmail — Envía Reporte"** necesita autenticación OAuth2 con Google
 
 Antes de ejecutar, comprueba que:
 
-- [ ] **Nodo Claude API**: El campo `x-api-key` referencia `{{ $env.N8N_CLAUDE_API_KEY }}` (ya configurado en el JSON)
-- [ ] **Nodo Gmail**: Muestra tu cuenta de Gmail conectada (no el placeholder)
-- [ ] **Nodo Gmail → Para**: Referencia `{{ $env.DEMO_EMAIL }}` (ya configurado en el JSON)
-- [ ] Variables de entorno guardadas en n8n Settings
+- [ ] **Nodo Claude API**: Campo "Credential" muestra `Anthropic API Key (x-api-key)` (credencial Header Auth)
+- [ ] **Nodo Gmail**: Muestra tu cuenta de Gmail conectada (OAuth2)
+- [ ] **Nodo Gmail → To**: Tiene tu email real (no `TU_EMAIL@gmail.com`)
 
 ---
 
@@ -134,7 +137,8 @@ Para que el reporte se envíe automáticamente cada lunes a las 8:00h:
 
 | Error | Causa | Solución |
 |-------|-------|----------|
-| `401 Unauthorized` en Claude | API Key incorrecta o variable no guardada | Revisa la variable `N8N_CLAUDE_API_KEY` en Settings |
+| `401 Unauthorized` en Claude | API Key incorrecta en la credencial | Edita la credencial "Anthropic API Key" en n8n Credentials y verifica el valor |
+| `access to env vars denied` | n8n bloquea `$env` en nodos HTTP | Asegúrate de usar credencial Header Auth, no `$env` (ya corregido en v2 del JSON) |
 | `400 Bad Request` en Gmail | Credencial de Gmail no conectada | Reconecta la cuenta en el nodo Gmail |
 | Email no llega | Variable `DEMO_EMAIL` vacía | Verifica que la variable está guardada y es un email válido |
 | Nodo se queda cargando | Timeout de la API de Anthropic | Espera 60s o verifica el estado en [status.anthropic.com](https://status.anthropic.com) |
