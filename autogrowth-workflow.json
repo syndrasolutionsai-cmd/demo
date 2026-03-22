@@ -1,0 +1,466 @@
+{
+  "name": "AutoGrowth — Diagnósticos de Marketing con IA",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"empresas\": [\n    {\n      \"nombre\": \"Restaurante El Rincón de María\",\n      \"sector\": \"Restauración\",\n      \"ciudad\": \"Madrid\",\n      \"url_web\": \"elrincondemaria.es\",\n      \"email_decisor\": \"maria@elrincondemaria.es\",\n      \"nombre_decisor\": \"María García\",\n      \"senales_dolor\": \"Web sin actualizar desde 2021, 0 anuncios activos en Meta, competidor principal invierte 2000 euros/mes en Google Ads, 12 reseñas negativas sin responder en Google Maps\"\n    },\n    {\n      \"nombre\": \"Clínica Dental Sonrisas Perfectas\",\n      \"sector\": \"Salud dental\",\n      \"ciudad\": \"Barcelona\",\n      \"url_web\": \"sonrisasperfectas.es\",\n      \"email_decisor\": \"info@sonrisasperfectas.es\",\n      \"nombre_decisor\": \"Dr. Javier López\",\n      \"senales_dolor\": \"Sin presencia en Instagram, competidores con 15K+ seguidores, no aparece en Google Maps para búsqueda de clínica dental Barcelona, web sin SSL\"\n    },\n    {\n      \"nombre\": \"Academia de Inglés Oxford Plus\",\n      \"sector\": \"Educación\",\n      \"ciudad\": \"Valencia\",\n      \"url_web\": \"oxfordplus.es\",\n      \"email_decisor\": \"director@oxfordplus.es\",\n      \"nombre_decisor\": \"Carlos Martínez\",\n      \"senales_dolor\": \"Facebook sin actividad 8 meses, Google Ads de competidores aparecen antes, web sin versión móvil, sin reseñas en Google\"\n    },\n    {\n      \"nombre\": \"Fontanería Rápida 24h\",\n      \"sector\": \"Servicios del hogar\",\n      \"ciudad\": \"Sevilla\",\n      \"url_web\": \"fontaneriarapida24h.es\",\n      \"email_decisor\": \"contacto@fontaneriarapida24h.es\",\n      \"nombre_decisor\": \"Antonio Ruiz\",\n      \"senales_dolor\": \"Solo 3 reseñas en Google, competidores con 200+ reseñas, sin web mobile, no aparece en búsquedas locales de emergencia\"\n    },\n    {\n      \"nombre\": \"Inmobiliaria Premium Homes\",\n      \"sector\": \"Inmobiliaria\",\n      \"ciudad\": \"Málaga\",\n      \"url_web\": \"premiumhomesmalaga.es\",\n      \"email_decisor\": \"ventas@premiumhomesmalaga.es\",\n      \"nombre_decisor\": \"Sandra Torres\",\n      \"senales_dolor\": \"Sin anuncios en Meta, competidores con campañas activas de captación, Instagram con 200 seguidores vs competidor con 8K, sin Google My Business verificado\"\n    }\n  ]\n} }}"
+      },
+      "id": "node-empresas-target",
+      "name": "Empresas Target",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const empresas = items[0].json.empresas;\nreturn empresas.map(empresa => ({ json: empresa }));"
+      },
+      "id": "node-split-empresas",
+      "name": "Split Empresas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const empresa = $input.item.json;\nconst prompt = \"Eres consultor de marketing digital senior con 15 anos de experiencia en el mercado espanol. Analiza esta empresa y genera un diagnostico de marketing brutal y honesto. Empresa: \" + empresa.nombre + \". Sector: \" + empresa.sector + \". Ciudad: \" + empresa.ciudad + \". Web: \" + empresa.url_web + \". Problemas detectados: \" + empresa.senales_dolor + \". Genera el diagnostico con estas secciones exactas respondiendo SOLO con JSON sin texto adicional ni markdown: problema_1 (string con el primer problema especifico con datos concretos), problema_2 (string con el segundo problema), problema_3 (string con el tercer problema), coste_mensual_estimado (string con lo que pierde en euros por estos problemas), accion_1 (string con primera accion concreta para los proximos 30 dias), accion_2 (string con segunda accion), accion_3 (string con tercera accion), oportunidad (string con la mayor oportunidad que tiene ahora mismo), resumen_ejecutivo (string de 2 frases resumiendo todo).\";\nconst promptLimpio = prompt.replace(/[\\u0000-\\u001F\\u007F]/g, ' ').replace(/\\s+/g, ' ').trim();\nreturn { json: { ...empresa, prompt: promptLimpio } };"
+      },
+      "id": "node-prepara-prompt-diagnostico",
+      "name": "Prepara Prompt Diagnostico",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.N8N_CLAUDE_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-opus-4-5"
+            },
+            {
+              "name": "max_tokens",
+              "value": "={{ 2000 }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{\"role\":\"user\",\"content\":$json.prompt}] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-claude-genera-diagnostico",
+      "name": "Claude Genera Diagnostico",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $input.item.json;\nconst empresaData = $('Prepara Prompt Diagnostico').item.json;\nlet content = '';\nif (response.content && Array.isArray(response.content)) {\n  content = response.content[0].text || '';\n} else if (response.text) {\n  content = response.text;\n} else {\n  content = JSON.stringify(response);\n}\nlet diagnostico;\ntry {\n  content = content.replace(/```json/gi, '').replace(/```/g, '').trim();\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    diagnostico = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No JSON');\n  }\n} catch(e) {\n  diagnostico = {\n    problema_1: 'Sin presencia digital efectiva',\n    problema_2: 'Competencia captando sus clientes potenciales',\n    problema_3: 'Sin sistema de captacion activo',\n    coste_mensual_estimado: '2.000-5.000 euros/mes en oportunidades perdidas',\n    accion_1: 'Activar Google My Business y responder reseñas',\n    accion_2: 'Lanzar campana de Google Ads local',\n    accion_3: 'Crear perfil de Instagram activo',\n    oportunidad: 'Mercado local sin competencia digital fuerte',\n    resumen_ejecutivo: 'La empresa tiene potencial sin explotar digitalmente.'\n  };\n}\nreturn {\n  json: {\n    nombre: empresaData.nombre || '',\n    sector: empresaData.sector || '',\n    ciudad: empresaData.ciudad || '',\n    url_web: empresaData.url_web || '',\n    email_decisor: empresaData.email_decisor || '',\n    nombre_decisor: empresaData.nombre_decisor || '',\n    senales_dolor: empresaData.senales_dolor || '',\n    diagnostico: diagnostico\n  }\n};"
+      },
+      "id": "node-parsea-diagnostico",
+      "name": "Parsea Diagnostico",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const datos = $input.item.json;\nconst d = datos.diagnostico;\nconst promptEmail = \"Eres el director de una agencia de marketing digital en Espana llamada Impulsa Agency. Escribe un email frio personalizado para el decisor de esta empresa. Nombre decisor: \" + datos.nombre_decisor + \". Empresa: \" + datos.nombre + \". Sector: \" + datos.sector + \". Ciudad: \" + datos.ciudad + \". Problema principal detectado: \" + d.problema_1 + \". Coste estimado del problema: \" + d.coste_mensual_estimado + \". El email debe: tener maximo 5 lineas, mencionar algo especifico y real de su negocio, generar curiosidad sobre el diagnostico completo, terminar con un CTA para ver el diagnostico completo en el enlace privado, sonar como lo escribiria una persona real no una empresa. NO uses frases como Espero que este email te encuentre bien ni Me pongo en contacto. Responde SOLO con JSON sin markdown: asunto (string), cuerpo (string con el email completo con saltos de linea representados como barra n).\";\nconst promptLimpio = promptEmail.replace(/[\\u0000-\\u001F\\u007F]/g, ' ').replace(/\\s+/g, ' ').trim();\nreturn { json: { ...datos, prompt_email: promptLimpio } };"
+      },
+      "id": "node-prepara-prompt-email",
+      "name": "Prepara Prompt Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.N8N_CLAUDE_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-opus-4-5"
+            },
+            {
+              "name": "max_tokens",
+              "value": "={{ 1000 }}"
+            },
+            {
+              "name": "messages",
+              "value": "={{ [{\"role\":\"user\",\"content\":$json.prompt_email}] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-claude-genera-email",
+      "name": "Claude Genera Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $input.item.json;\nconst datosEmpresa = $('Prepara Prompt Email').item.json;\nlet content = '';\nif (response.content && Array.isArray(response.content)) {\n  content = response.content[0].text || '';\n} else {\n  content = JSON.stringify(response);\n}\nlet emailData;\ntry {\n  content = content.replace(/```json/gi, '').replace(/```/g, '').trim();\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    emailData = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No JSON');\n  }\n} catch(e) {\n  emailData = {\n    asunto: 'Algo que encontramos sobre ' + datosEmpresa.nombre,\n    cuerpo: 'Hola ' + datosEmpresa.nombre_decisor + ', hemos analizado ' + datosEmpresa.nombre + ' y encontramos algo importante. Te hemos preparado un diagnostico completo.'\n  };\n}\nreturn {\n  json: {\n    ...datosEmpresa,\n    email_asunto: emailData.asunto || '',\n    email_cuerpo: emailData.cuerpo || ''\n  }\n};"
+      },
+      "id": "node-parsea-email",
+      "name": "Parsea Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 400]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "databaseId": {
+          "__rl": true,
+          "value": "={{ $env.NOTION_DATABASE_ID }}",
+          "mode": "id"
+        },
+        "title": "={{ $json.nombre }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Sector|rich_text",
+              "textContent": "={{ $json.sector }}"
+            },
+            {
+              "key": "Ciudad|rich_text",
+              "textContent": "={{ $json.ciudad }}"
+            },
+            {
+              "key": "Email|email",
+              "emailValue": "={{ $json.email_decisor }}"
+            },
+            {
+              "key": "Estado|select",
+              "selectValue": "Enviado"
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "type": "heading_1",
+              "textContent": "={{ 'Diagnóstico de Marketing — ' + $json.nombre }}"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ $json.diagnostico.resumen_ejecutivo }}"
+            },
+            {
+              "type": "heading_2",
+              "textContent": "Los 3 Problemas Principales"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "={{ $json.diagnostico.problema_1 }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "={{ $json.diagnostico.problema_2 }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "={{ $json.diagnostico.problema_3 }}"
+            },
+            {
+              "type": "heading_2",
+              "textContent": "Lo que estás perdiendo cada mes"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ $json.diagnostico.coste_mensual_estimado }}"
+            },
+            {
+              "type": "heading_2",
+              "textContent": "Las 3 Acciones para los Próximos 30 Días"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "={{ $json.diagnostico.accion_1 }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "={{ $json.diagnostico.accion_2 }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "={{ $json.diagnostico.accion_3 }}"
+            },
+            {
+              "type": "heading_2",
+              "textContent": "Tu Mayor Oportunidad Ahora Mismo"
+            },
+            {
+              "type": "paragraph",
+              "textContent": "={{ $json.diagnostico.oportunidad }}"
+            },
+            {
+              "type": "divider",
+              "textContent": ""
+            },
+            {
+              "type": "paragraph",
+              "textContent": "Este diagnóstico ha sido preparado por Impulsa Agency. Para hablar sobre cómo implementar estas acciones agenda una llamada gratuita de 20 minutos."
+            }
+          ]
+        }
+      },
+      "id": "node-crea-pagina-diagnostico",
+      "name": "Crea Pagina Diagnostico",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [2220, 400],
+      "credentials": {
+        "notionApi": {
+          "id": "notion-credential",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"nombre\": $json.nombre,\n  \"email_decisor\": $json.email_decisor,\n  \"nombre_decisor\": $json.nombre_decisor,\n  \"email_asunto\": $json.email_asunto,\n  \"email_cuerpo\": $json.email_cuerpo,\n  \"notion_url\": $json.url,\n  \"notion_id\": $json.id\n} }}"
+      },
+      "id": "node-prepara-datos-finales",
+      "name": "Prepara Datos Finales",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2440, 400]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "prospectos_procesados",
+        "options": {}
+      },
+      "id": "node-junta-todo",
+      "name": "Junta Todo",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [2660, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ {\n  \"sistema\": \"AutoGrowth\",\n  \"empresas_procesadas\": 5,\n  \"diagnosticos_generados\": 5,\n  \"paginas_notion_creadas\": 5,\n  \"estado\": \"completado\",\n  \"fecha\": new Date().toISOString()\n} }}"
+      },
+      "id": "node-resumen-final",
+      "name": "Resumen Final",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2880, 400]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Empresas Target",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Empresas Target": {
+      "main": [
+        [
+          {
+            "node": "Split Empresas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Empresas": {
+      "main": [
+        [
+          {
+            "node": "Prepara Prompt Diagnostico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara Prompt Diagnostico": {
+      "main": [
+        [
+          {
+            "node": "Claude Genera Diagnostico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Genera Diagnostico": {
+      "main": [
+        [
+          {
+            "node": "Parsea Diagnostico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsea Diagnostico": {
+      "main": [
+        [
+          {
+            "node": "Prepara Prompt Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara Prompt Email": {
+      "main": [
+        [
+          {
+            "node": "Claude Genera Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Genera Email": {
+      "main": [
+        [
+          {
+            "node": "Parsea Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsea Email": {
+      "main": [
+        [
+          {
+            "node": "Crea Pagina Diagnostico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crea Pagina Diagnostico": {
+      "main": [
+        [
+          {
+            "node": "Prepara Datos Finales",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara Datos Finales": {
+      "main": [
+        [
+          {
+            "node": "Junta Todo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Junta Todo": {
+      "main": [
+        [
+          {
+            "node": "Resumen Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2026-03-22T00:00:00.000Z",
+      "updatedAt": "2026-03-22T00:00:00.000Z",
+      "id": "autogrowth-tag",
+      "name": "AutoGrowth"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-22T00:00:00.000Z",
+  "versionId": "autogrowth-v1"
+}
