@@ -1,161 +1,163 @@
-# AutoReport — Script de Demo (4 minutos)
-## Para llamadas de ventas con fundadores de agencias en España
+# AutoContent — Script de Demo (4 minutos)
+## Para llamadas de ventas con fundadores de agencias de social media en España
 
 > **Antes de la llamada:**
-> - Workflow importado y probado al menos 1 vez ✓
-> - n8n abierto en el canvas del workflow (nodo "Iniciar Demo" visible) ✓
-> - Gmail abierto en otra pestaña para mostrar el email en tiempo real ✓
-> - Pantalla compartida lista para activar al empezar ✓
-> - Cronómetro preparado (o cuenta mentalmente: cada bloque es aprox. 30-60s) ✓
+> - Workflow ejecutado al menos 1 vez y HTML generado ✓
+> - n8n abierto en el canvas con los nodos visibles ✓
+> - HTML abierto en otra pestaña del navegador, en la pestaña de Forja Gym ✓
+> - Pantalla compartida lista para activar ✓
 
 ---
 
-## [0:00 – 0:30] EL PROBLEMA (sin ejecutar nada todavía)
+## [0:00 – 0:30] LA PREGUNTA QUE DUELE
 
-> *Comparte pantalla. Muestra el canvas de n8n pero NO ejecutes nada aún.*
-> *Tono: cercano, directo, como si conocieras su dolor de primera mano.*
+> *Comparte pantalla. Canvas de n8n visible. No ejecutes nada todavía.*
+> *Tono: directo, como si llevases años en su sitio.*
 
 ---
 
-**"Antes de enseñarte algo, déjame preguntarte una cosa..."**
+**"Antes de enseñarte nada, dime una cosa..."**
 
 *[Pausa de 2 segundos]*
 
-**"¿Cuántas horas pierde tu equipo cada semana preparando los reportes para los clientes? ¿Dos horas? ¿Cuatro? ¿Más?"**
+**"¿Cuántas horas pierde tu equipo cada semana creando contenido para los clientes? ¿Cuántas veces alguien se queda en blanco delante de un calendario editorial vacío?"**
 
-*[Espera respuesta o continúa si es grabación]*
+*[Espera respuesta o continúa]*
 
-**"En agencias como la tuya, la media son entre 15 y 20 horas a la semana. Solo en reportes. Alguien tiene que entrar en Google Ads, copiar métricas, entrar en Meta, copiar más métricas, abrir el PowerPoint o el Google Slides, cuadrar los números, escribir el análisis, formatearlo, mandarlo... y al lunes siguiente, a empezar de nuevo."**
+**"En la mayoría de agencias de social media, son entre 10 y 15 horas a la semana. Por cliente. Alguien tiene que pensar los temas, adaptar el tono a cada marca, escribir los copies, estructurar el calendario... y al viernes siguiente, a empezar de nuevo desde cero."**
 
-**"Lo que te voy a mostrar ahora mismo hace todo eso en menos de 30 segundos. Sin que nadie lo toque."**
-
----
-
-## [0:30 – 2:00] EJECUTAS EL WORKFLOW (nodo a nodo)
-
-> *Haz clic en "Test workflow" o en el botón ▶ del nodo "🚀 Iniciar Demo".*
-> *Narra en tiempo real mientras los nodos se iluminan en verde.*
+**"Lo que te voy a mostrar genera el plan de contenido completo de una semana, para tres clientes completamente distintos, en menos de 40 segundos."**
 
 ---
 
-**"Voy a darle a ejecutar ahora mismo. ¿Ves estos nodos? Cada uno es un paso del proceso."**
+## [0:30 – 1:30] EJECUTAS EL WORKFLOW
+
+> *Haz clic en "Test workflow" (▶ naranja). Narra mientras los nodos se iluminan.*
+
+---
+
+**"Ejecuto ahora mismo. Cada nodo verde es un paso del proceso."**
 
 *[Haz clic en ejecutar]*
 
-**[Nodo 1 — Trigger se ilumina en verde]**
-**"Arrancamos. Esto en producción se dispara automáticamente cada lunes a las 8 de la mañana. Sin que nadie lo recuerde, sin que nadie lo olvide."**
+**[Nodo trigger — verde]**
+**"Arranca. En producción esto se dispara solo cada lunes a las 7 de la mañana."**
 
-**[Nodo 2 — Datos del Cliente se ilumina]**
-**"Aquí el sistema carga los datos del cliente. En producción, esta información viene directamente de la API de Google Ads y Meta Ads, en tiempo real. Para la demo, tenemos cargados los datos reales de una clínica dental ficticia, Clínica Dental Sonrisas: Google Ads, Meta Ads, gasto, pacientes captados, coste por paciente... todo."**
+**[Nodo de configuración de clientes — verde]**
+**"Aquí carga los perfiles de los clientes: sector, objetivo, pilares de contenido, tono de comunicación... Esta semana tenemos tres: Forja Gym, Legado Notaría y Piel de Luna. Tres negocios que no tienen nada que ver entre sí."**
 
-*[Si tienes tiempo, haz clic en el nodo para mostrar los datos en el panel derecho]*
+**[Nodo Claude — verde, tarda 10-15 segundos]**
+**"Ahora mismo estamos llamando a Claude, la IA de Anthropic. Le pasamos cada perfil de cliente y le pedimos que genere el plan semanal completo: temas, copies, hashtags, formato para cada red... adapta el tono a cada marca. No es un template. Está generando contenido nuevo desde cero."**
 
-**[Nodo 3 — Claude API se ilumina — este tarda 5-10 segundos]**
-**"Ahora mismo... estamos llamando a Claude, la inteligencia artificial de Anthropic. Le estamos pasando todos los datos y le estamos pidiendo que escriba el resumen semanal como si fuera el account manager de la agencia. Sin tecnicismos. En el idioma del cliente."**
+*[Mientras espera:]*
+**"Fíjate que no le damos un prompt genérico. Le hemos enseñado a pensar como el account manager de cada cliente."**
 
-*[Espera que termine — aprovecha para decir:]*
-**"Fíjate que esto no es un template con variables. Claude está analizando los números, comparándolos con la semana anterior, viendo si están en ritmo con el objetivo mensual... y escribiendo un texto completamente nuevo. Como lo haría una persona."**
+**[Nodos de construcción y exportación — verde]**
+**"Monta el HTML con el calendario visual, organiza las 42 piezas por cliente y por día... y exporta el archivo listo para usar."**
 
-**[Nodo 4 — Construye HTML se ilumina]**
-**"Ya tenemos el análisis. Ahora montamos el email: cabecera con el logo de la agencia, tarjetas con las métricas de Google y Meta, una barra de progreso visual del objetivo del mes, el texto de Claude... Un email que parece que lo ha preparado el equipo durante dos horas."**
+**[Nodo final — verde]**
+**"¿Cuánto ha tardado?"**
 
-**[Nodo 5 — Gmail se ilumina]**
-**"Y aquí... lo enviamos. Directamente al cliente. O a quien la agencia decida: puede ir al cliente, al director de la clínica, al gerente..."**
-
-**[Nodo 6 — Airtable se ilumina]**
-**"Aquí registramos el envío en la base de datos: qué cliente, qué fecha, qué métricas. Para el historial de la agencia y para los informes internos."**
-
-**[Nodo 7 — Confirmación Final se ilumina en verde]**
-**"¿Ves el check verde? Reporte generado y enviado. ¿Cuánto tiempo ha pasado desde que pulsé ejecutar?"**
-
-*[Mira el tiempo — normalmente 20-30 segundos]*
-**"Menos de 30 segundos."**
+*[Mira el tiempo — unos 30-35 segundos]*
+**"Treinta y pocos segundos. 42 piezas de contenido. Tres clientes. Vamos a verlo."**
 
 ---
 
-## [2:00 – 3:00] MUESTRAS EL EMAIL EN TIEMPO REAL
+## [1:30 – 3:00] NAVEGAS POR EL HTML
 
-> *Cambia a la pestaña de Gmail. Refresca la bandeja de entrada.*
-> *El email tiene que estar ahí. Si tarda, di: "Gmail tarda unos segundos en entregarlo..."*
-
----
-
-**"Vamos a ver qué ha recibido el cliente."**
-
-*[Abre el email — muestra el asunto primero]*
-
-**"Mira el asunto: '📊 Reporte Semanal | Clínica Dental Sonrisas | Semana 10-16 Mar'. Limpio, profesional."**
-
-*[Abre el email y desplázate lentamente por el diseño]*
-
-**"Header con el nombre de la agencia. Nombre del cliente. Fecha del reporte."**
-
-**"Las dos tarjetas de métricas: Google Ads a la izquierda, Meta Ads a la derecha. ¿Ves los triángulos verdes? Indican mejora respecto a la semana anterior. Si hubiera bajado algo, aparecería en rojo. El cliente entiende de un vistazo si va bien o mal."**
-
-**"La barra de progreso del objetivo mensual. Este cliente quiere 80 pacientes nuevos en marzo. Van en el 51% del objetivo con el 51% del mes transcurrido. Perfecto ritmo."**
-
-*[Desplázate hasta el análisis de Claude]*
-
-**"Y aquí está lo que ha escrito Claude. Léete esto..."**
-
-*[Lee en voz alta 3-4 líneas del resumen, las más específicas con datos]*
-
-**"¿Te das cuenta? No dice 'el CTR fue del 3.91%'. Dice 'esta semana captamos 23 pacientes nuevos desde Google y 18 desde redes sociales'. Lo mismo, pero en el idioma de un dentista."**
-
-**"Este email lo puede entender el propietario de la clínica. Sin necesitar que nadie le explique nada."**
+> *Cambia a la pestaña del navegador con el HTML abierto.*
+> *Desplázate lentamente. Deja que el diseño hable.*
 
 ---
 
-## [3:00 – 4:00] EL ROI Y LA PREGUNTA DE CIERRE
+**"Este es el entregable. Un HTML que se abre directamente en el navegador, sin servidor, sin login."**
 
-> *Vuelve a tu cámara o a la presentación. Tono más pausado, más directo.*
+*[Muestra la estructura general: pestañas de los 3 clientes en la parte superior]*
+
+**"Tres pestañas, un cliente cada una. Empezamos por Forja Gym."**
+
+*[Haz clic en la pestaña de Forja Gym]*
+
+**"Gimnasio. Comunidad. Energía. ¿Ves cómo suena esto?"**
+
+*[Lee en voz alta 2-3 copies del calendario — los más potentes, con emojis, lenguaje motivacional]*
+
+**"Directo, con punch, con emojis. El lenguaje de alguien que entrena."**
+
+*[Haz clic en la pestaña de Legado Notaría]*
+
+**"Mismo sistema. Cliente completamente diferente."**
+
+*[Lee 2-3 copies — formales, sin emojis, lenguaje de autoridad y confianza]*
+
+**"¿Notas la diferencia? No hay un solo emoji. El tono es de experto, de institución. Es lo que necesita una notaría para generar confianza."**
+
+*[Haz clic en la pestaña de Piel de Luna]*
+
+**"Y aquí... Piel de Luna. Cosmética natural."**
+
+*[Lee 2-3 copies — sensorial, evocador, femenino, cuidadoso]*
+
+**"Completamente distinto. Poético, sensorial. El mismo sistema, tres voces que no se parecen en nada."**
+
+*[Haz clic en el botón "Copiar" de cualquier pieza de contenido]*
+
+**"Y esto es lo que le encanta al equipo: botón de copiar en cada pieza. Un clic y está en el portapapeles, listo para pegar en Metricool, en Buffer, en el grupo de WhatsApp del cliente... donde sea."**
+
+**"El equipo no tiene que escribir nada. Solo revisar, ajustar si quieren, y publicar."**
 
 ---
 
-**"Ahora vamos a hacer los números juntos un momento."**
+## [3:00 – 4:00] EL ROI Y EL CIERRE
 
-**"Si tu equipo dedica 15 horas a la semana a hacer reportes, y una hora de trabajo en tu agencia vale 30€ conservadoramente... son 450€ a la semana. 1.800€ al mes. 21.600€ al año. Solo en reportes."**
+> *Vuelve a cámara o pantalla neutra. Tono más pausado.*
 
-**"¿Cuánto cuesta AutoReport? El coste de IA por reporte es de menos de 2 céntimos. Para 20 clientes semanales, son menos de 2 euros a la semana."**
+---
 
-**"Pero hay algo que va más allá del coste. Cuando los reportes llegan el lunes a las 8 de la mañana, sin fallar, sin retrasos, bien presentados... los clientes perciben a tu agencia diferente. Más profesional. Más grande. Y eso se traduce en retención."**
+**"Vamos a hacer los números un momento."**
 
-**"La pregunta no es si esto tiene sentido. La pregunta es..."**
+**"Si tu equipo dedica 11 horas y media a la semana en crear contenido para los clientes — y esa es la media real que hemos medido — y una hora de trabajo en tu agencia vale 25€... son casi 290€ a la semana. Más de 1.100€ al mes. Solo en producción de contenido."**
+
+**"¿Cuánto cuesta AutoContent en API? Menos de 5 céntimos por cliente y semana."**
+
+**"Pero más allá del coste: cuando tu equipo no está atascado generando contenido desde cero, está cerrando nuevos clientes, está mejorando las estrategias, está haciendo el trabajo que realmente diferencia a tu agencia."**
+
+**"Y tus clientes reciben su plan cada lunes. Sin retrasos. Sin 'lo tenemos casi listo'. Eso también retiene clientes."**
 
 *[Pausa de 2 segundos]*
 
-**"¿Cuántos de tus clientes actuales llevan más de tres meses sin recibir un reporte bien hecho porque el equipo no da abasto?"**
+**"La pregunta que me hago yo es..."**
+
+**"¿Cuántos clientes tienes ahora mismo en los que el contenido va con retraso porque el equipo no da abasto?"**
 
 *[Espera respuesta — escucha]*
 
-**"Podemos tener esto configurado para tu agencia en una tarde. Con tus colores, tus datos reales de Google Ads y Meta Ads, y enviando a tus clientes. ¿Cuándo tienes 90 minutos esta semana para montar la primera versión?"**
+**"Podemos configurar AutoContent para tu agencia con tus clientes reales en una tarde. Con sus voces, sus pilares, sus redes. ¿Qué hueco tienes esta semana para montar la primera versión?"**
 
 ---
 
-## Notas para el Demo
+## Si algo falla en directo
 
-### Si el workflow falla en directo:
-- Mantén la calma. Di: **"Déjame reiniciarlo, a veces la primera ejecución tarda un poco más..."**
-- Vuelve a ejecutar. Casi siempre funciona al segundo intento.
-- Si falla de nuevo: **"Perfecto, esto me permite enseñarte cómo funciona la gestión de errores... pero mejor te mando la grabación de la demo para que lo veas al 100%."** Pasa a hablar del ROI directamente.
+**Si el workflow no ejecuta:**
+> *"Déjame reiniciarlo, a veces la primera llamada a la API tarda un poco más..."*
+> Vuelve a ejecutar. Si falla de nuevo: *"Perfecto, te mando la grabación de la demo y lo ves al 100% — mientras tanto hablamos del ROI para tu agencia específicamente."*
 
-### Si el cliente pregunta "¿esto es solo para reportes?":
-**"No, esto es la punta del iceberg. El mismo sistema puede generar propuestas de presupuesto, alertas cuando una campaña baja de rendimiento, resúmenes para reuniones de estrategia... Empezamos con reportes porque es donde más tiempo se pierde, pero el framework sirve para automatizar cualquier proceso repetitivo de la agencia."**
+**Si el cliente pregunta "¿se puede conectar a nuestras herramientas?":**
+> *"Sí. n8n tiene conectores nativos para Notion, Airtable, Google Drive, Slack, WhatsApp Business... El calendario se puede exportar directamente donde trabaje tu equipo."*
 
-### Si el cliente pregunta "¿necesito saber programar?":
-**"Cero. Si sabes usar Gmail y sabes copiar-pegar, sabes usar n8n. Y si en algún momento quieres añadir algo nuevo, en una tarde te lo montamos. No hay código."**
+**Si el cliente pregunta "¿mis clientes necesitan tener perfil de empresa claro?":**
+> *"Cuanto mejor definido está el perfil, mejor el resultado. Con 10 minutos rellenando la ficha de cada cliente — sector, tono, tres pilares de contenido — el sistema ya genera algo usable. Y mejora con cada semana."*
 
-### Si el cliente pregunta "¿y los datos de mis clientes están seguros?":
-**"Todo corre en tu propio servidor o en tu cuenta privada de n8n. Los datos no pasan por ningún intermediario. La IA de Anthropic recibe los números —igual que cuando los pegas en ChatGPT para que te ayude a escribir— pero no los almacena para entrenamiento si usas la API con la configuración estándar."**
+**Si el cliente pregunta "¿necesito saber programar?":**
+> *"Cero líneas de código. Si sabes usar Gmail, sabes usar esto. Y si quieres añadir algo nuevo, en una tarde lo montamos."*
 
 ---
 
 ## Checklist Pre-Demo
 
-- [ ] Workflow ejecutado al menos 1 vez antes de la llamada (para verificar que todo funciona)
-- [ ] Email de prueba recibido en bandeja de entrada (no en spam)
-- [ ] n8n en modo canvas con workflow visible y nodo "Iniciar Demo" centrado en pantalla
-- [ ] Gmail abierto en segunda pestaña, bandeja de entrada vacía o visible
-- [ ] Cronómetro preparado (recomendado: reloj del teléfono)
-- [ ] Micrófono testeado, cámara encendida
+- [ ] Workflow ejecutado y HTML generado (archivo `.html` en `autocontent_output`)
+- [ ] HTML abierto en el navegador, pestaña Forja Gym activa
+- [ ] n8n en canvas con workflow visible y centrado (`Ctrl+Shift+H`)
+- [ ] Botón "copiar" probado — confirmar que funciona en tu navegador
 - [ ] Notificaciones del sistema silenciadas
+- [ ] Cronómetro preparado
