@@ -1,0 +1,176 @@
+{
+  "name": "AutoContent — Plan Semanal Social Media",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {}
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "Datos Clientes",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ \"clientes\": [ { \"nombre\": \"Forja Gym\", \"sector\": \"Gimnasio funcional\", \"plataformas\": \"Instagram, TikTok\", \"tono\": \"motivacional, directo, comunidad de guerreros\", \"pilares\": \"entrenamientos, nutrición, transformaciones\", \"tendencia_semana\": \"debate viral sobre cardio en ayunas\" }, { \"nombre\": \"Legado Notaría\", \"sector\": \"Notaría y servicios legales\", \"plataformas\": \"LinkedIn, Instagram\", \"tono\": \"serio pero accesible, desmitifica lo legal\", \"pilares\": \"educación legal, casos comunes, consejos prácticos\", \"tendencia_semana\": \"nueva ley de vivienda genera dudas masivas\" }, { \"nombre\": \"Piel de Luna\", \"sector\": \"Estudio de tatuajes\", \"plataformas\": \"Instagram, TikTok\", \"tono\": \"artístico, misterioso, poético\", \"pilares\": \"proceso creativo, cultura del tatuaje, artistas\", \"tendencia_semana\": \"boom de tatuajes fine line con acuarela\" } ] }) }}"
+      }
+    },
+    {
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "Split Clientes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const clientes = items[0].json.clientes;\nreturn clientes.map(cliente => ({ json: cliente }));"
+      }
+    },
+    {
+      "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "name": "Claude Genera Contenido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.N8N_CLAUDE_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"model\": \"claude-opus-4-5\",\n  \"max_tokens\": 2000,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Eres estratega de contenido de Narrativa Social, agencia en Barcelona.\\n\\nGenera plan de contenido semanal para:\\n- Cliente: {{ $json.nombre }}\\n- Sector: {{ $json.sector }}\\n- Plataformas: {{ $json.plataformas }}\\n- Tono: {{ $json.tono }}\\n- Pilares: {{ $json.pilares }}\\n- Tendencia esta semana: {{ $json.tendencia_semana }}\\n\\nGenera exactamente:\\n1. POSTS (3): cada uno con angulo, copy completo listo para publicar, y 5 hashtags\\n2. REELS (2): cada uno con gancho (primeros 3 segundos), estructura por escenas, y por qué funcionará\\n3. STORIES (3): copy exacto y tipo de interacción (encuesta, pregunta, desliza)\\n\\nResponde SOLO con JSON válido, sin texto adicional, sin markdown, sin bloques de código:\\n{\\\"posts\\\":[{\\\"angulo\\\":\\\"\\\",\\\"copy\\\":\\\"\\\",\\\"hashtags\\\":[]}],\\\"reels\\\":[{\\\"gancho\\\":\\\"\\\",\\\"estructura\\\":\\\"\\\",\\\"razon\\\":\\\"\\\"}],\\\"stories\\\":[{\\\"copy\\\":\\\"\\\",\\\"tipo_interaccion\\\":\\\"\\\"}]}\"\n    }\n  ]\n}"
+      }
+    },
+    {
+      "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+      "name": "Parsea Respuesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = items[0].json;\nconst content = response.content[0].text;\nlet contenido;\ntry {\n  contenido = JSON.parse(content);\n} catch(e) {\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    contenido = JSON.parse(jsonMatch[0]);\n  } else {\n    contenido = { error: \"No se pudo parsear\", raw: content };\n  }\n}\nreturn [{\n  json: {\n    cliente: items[0].json.nombre || \"Cliente\",\n    contenido: contenido,\n    fecha_generacion: new Date().toISOString()\n  }\n}];"
+      }
+    },
+    {
+      "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+      "name": "Junta Resultados",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1340, 300],
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "resultados"
+      }
+    },
+    {
+      "id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+      "name": "Resumen Final",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1560, 300],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"sistema\": \"AutoContent\",\n  \"clientes_procesados\": 3,\n  \"estado\": \"completado\",\n  \"mensaje\": \"Plan de contenido semanal generado para Forja Gym, Legado Notaría y Piel de Luna\",\n  \"fecha\": \"{{ new Date().toISOString() }}\",\n  \"resultados\": {{ JSON.stringify($json.resultados) }}\n}"
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Datos Clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos Clientes": {
+      "main": [
+        [
+          {
+            "node": "Split Clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Clientes": {
+      "main": [
+        [
+          {
+            "node": "Claude Genera Contenido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Genera Contenido": {
+      "main": [
+        [
+          {
+            "node": "Parsea Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsea Respuesta": {
+      "main": [
+        [
+          {
+            "node": "Junta Resultados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Junta Resultados": {
+      "main": [
+        [
+          {
+            "node": "Resumen Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-03-22T00:00:00.000Z",
+  "versionId": "1"
+}
