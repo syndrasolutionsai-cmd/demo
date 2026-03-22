@@ -1,0 +1,204 @@
+{
+  "meta": {
+    "instanceId": "autonurture-n8n-workflow-v1"
+  },
+  "name": "AutoNurture - Seguimiento Leads con IA",
+  "nodes": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "parameters": {}
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "Datos Leads",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\"leads\":[{\"nombre\":\"Carlos Mendoza\",\"empresa\":\"Muebles Artesanos Mendoza\",\"cargo\":\"Gerente\",\"servicio_interesado\":\"Google Ads para tienda online\",\"presupuesto\":\"800-1200 euros/mes\",\"origen\":\"Formulario web\",\"dias_sin_respuesta\":8,\"historial\":\"Call inicial 20 minutos. Muy interesado. Pidio propuesta. Enviamos hace 8 dias. No ha respondido. Abrio el email 3 veces.\",\"temperatura\":\"caliente_enfriado\",\"intentos\":2},{\"nombre\":\"Patricia Soler\",\"empresa\":\"Academia de Ingles Soler\",\"cargo\":\"Directora\",\"servicio_interesado\":\"Meta Ads captacion alumnos\",\"presupuesto\":\"500-800 euros/mes\",\"origen\":\"Instagram DM\",\"dias_sin_respuesta\":14,\"historial\":\"Respondio al DM. Call 15 minutos. Dijo que lo pensaria. Follow up hace 14 dias. Silencio total.\",\"temperatura\":\"tibio\",\"intentos\":3},{\"nombre\":\"Marcos Jimenez\",\"empresa\":\"Clinica Dental Sonrisa Perfecta\",\"cargo\":\"Director medico\",\"servicio_interesado\":\"Google Ads y Meta Ads captacion pacientes\",\"presupuesto\":\"1500-2000 euros/mes\",\"origen\":\"Referido\",\"dias_sin_respuesta\":21,\"historial\":\"Primera call excelente. Dio acceso a cuentas. Enviamos auditoria con oportunidades claras. Dijo que el mes que viene tenia presupuesto. Han pasado 3 semanas.\",\"temperatura\":\"caliente_bloqueado\",\"intentos\":4},{\"nombre\":\"Elena Vazquez\",\"empresa\":\"Restaurante La Taberna de Elena\",\"cargo\":\"Propietaria\",\"servicio_interesado\":\"Meta Ads reservas y eventos\",\"presupuesto\":\"400-600 euros/mes\",\"origen\":\"Cold email\",\"dias_sin_respuesta\":5,\"historial\":\"Respondio al cold email con interes pero dijo que estaba liada con la temporada. Llamamos. No contesto. Dejamos mensaje de voz.\",\"temperatura\":\"tibio_ocupado\",\"intentos\":2},{\"nombre\":\"Roberto Alonso\",\"empresa\":\"Gestoria Alonso y Asociados\",\"cargo\":\"Socio director\",\"servicio_interesado\":\"LinkedIn Ads y Google Ads B2B\",\"presupuesto\":\"2000-3000 euros/mes\",\"origen\":\"LinkedIn\",\"dias_sin_respuesta\":30,\"historial\":\"Conexion LinkedIn. Call 30 minutos positiva. Enviamos propuesta. Necesita aprobacion del otro socio. Dos seguimientos sin respuesta. Sigue activo en LinkedIn.\",\"temperatura\":\"frio_recuperable\",\"intentos\":5},{\"nombre\":\"Sofia Martinez\",\"empresa\":\"Centro de Pilates Equilibrio\",\"cargo\":\"Fundadora\",\"servicio_interesado\":\"Meta Ads captacion clientes\",\"presupuesto\":\"400-700 euros/mes\",\"origen\":\"Referido\",\"dias_sin_respuesta\":45,\"historial\":\"Primer contacto hace 2 meses. Queria esperar a septiembre para inicio de temporada. Enviamos email en agosto. No respondio. Ahora es octubre temporada activa.\",\"temperatura\":\"reactivacion_estacional\",\"intentos\":2}]}",
+        "options": {}
+      }
+    },
+    {
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "Split Leads",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const leads = items[0].json.leads;\nreturn leads.map(lead => ({ json: lead }));"
+      }
+    },
+    {
+      "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "name": "Prepara Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const lead = $input.item.json;\nconst prompt = \"Eres comercial senior de una agencia de marketing en Espana. Genera el mensaje de seguimiento perfecto para este lead. Nombre: \" + lead.nombre + \". Empresa: \" + lead.empresa + \". Cargo: \" + lead.cargo + \". Servicio: \" + lead.servicio_interesado + \". Dias sin respuesta: \" + lead.dias_sin_respuesta + \". Historial: \" + lead.historial + \". Temperatura: \" + lead.temperatura + \". Intentos previos: \" + lead.intentos + \". Genera un mensaje corto maximo 5 lineas adaptado exactamente a su historial y temperatura. Responde SOLO con JSON sin texto adicional ni markdown con estas claves: canal (email o whatsapp), asunto (solo si es email), mensaje (el texto completo listo para enviar), razonamiento (por que este angulo en 1 frase), prioridad (alta media o baja), siguiente_accion (que hacer si no responde en 3 dias).\";\nconst promptLimpio = prompt.replace(/[\\u0000-\\u001F\\u007F]/g, ' ').replace(/\\s+/g, ' ').trim();\nreturn { json: { ...lead, prompt: promptLimpio } };"
+      }
+    },
+    {
+      "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+      "name": "Claude Genera Mensaje",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.N8N_CLAUDE_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({model: 'claude-opus-4-5', max_tokens: 1000, messages: [{role: 'user', content: $json.prompt}]}) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+      "name": "Parsea Respuesta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const response = $input.item.json;\nlet content = '';\nif (response.content && Array.isArray(response.content)) {\n  content = response.content[0].text || '';\n} else if (response.text) {\n  content = response.text;\n} else {\n  content = JSON.stringify(response);\n}\nlet mensaje;\ntry {\n  content = content.replace(/```json/gi, '').replace(/```/g, '').trim();\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  if (jsonMatch) {\n    mensaje = JSON.parse(jsonMatch[0]);\n  } else {\n    throw new Error('No JSON encontrado');\n  }\n} catch(e) {\n  mensaje = {\n    canal: 'email',\n    asunto: 'Seguimiento',\n    mensaje: 'Error al generar mensaje. Vuelve a ejecutar.',\n    razonamiento: 'Error de parseo',\n    prioridad: 'media',\n    siguiente_accion: 'Reintentar'\n  };\n}\nconst leadData = $input.item.json;\nreturn {\n  json: {\n    nombre: leadData.nombre || '',\n    empresa: leadData.empresa || '',\n    cargo: leadData.cargo || '',\n    temperatura: leadData.temperatura || '',\n    dias_sin_respuesta: leadData.dias_sin_respuesta || 0,\n    intentos: leadData.intentos || 0,\n    historial: leadData.historial || '',\n    servicio_interesado: leadData.servicio_interesado || '',\n    presupuesto: leadData.presupuesto || '',\n    mensaje_generado: mensaje\n  }\n};"
+      }
+    },
+    {
+      "id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+      "name": "Junta Leads",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1560, 300],
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "leads_procesados",
+        "options": {}
+      }
+    },
+    {
+      "id": "b8c9d0e1-f2a3-4567-bcde-678901234567",
+      "name": "Resumen Final",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1780, 300],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ ({ sistema: 'AutoNurture', leads_procesados: 6, estado: 'completado', mensaje: 'Mensajes de seguimiento generados para 6 leads', fecha: new Date().toISOString() }) }}",
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Datos Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos Leads": {
+      "main": [
+        [
+          {
+            "node": "Split Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Leads": {
+      "main": [
+        [
+          {
+            "node": "Prepara Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepara Prompt": {
+      "main": [
+        [
+          {
+            "node": "Claude Genera Mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude Genera Mensaje": {
+      "main": [
+        [
+          {
+            "node": "Parsea Respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsea Respuesta": {
+      "main": [
+        [
+          {
+            "node": "Junta Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Junta Leads": {
+      "main": [
+        [
+          {
+            "node": "Resumen Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "id": "autonurture-workflow-001",
+  "tags": []
+}
