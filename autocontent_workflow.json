@@ -1,0 +1,357 @@
+{
+  "name": "AutoContent — Narrativa Social",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-1-manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "clients-assignment",
+              "name": "clients",
+              "value": "={{ [\n  {\n    \"id\": \"forja-gym\",\n    \"nombre\": \"Forja Gym\",\n    \"sector\": \"fitness\",\n    \"plataformas\": [\"Instagram\", \"TikTok\"],\n    \"tono\": \"motivacional, directo, comunidad de guerreros\",\n    \"pilares\": [\"entrenamientos\", \"nutrición\", \"transformaciones\", \"comunidad\", \"motivación\"]\n  },\n  {\n    \"id\": \"legado-notaria\",\n    \"nombre\": \"Legado Notaría\",\n    \"sector\": \"legal\",\n    \"plataformas\": [\"LinkedIn\", \"Instagram\"],\n    \"tono\": \"serio pero accesible, desmitifica lo legal\",\n    \"pilares\": [\"educación legal\", \"casos comunes\", \"novedades legislativas\", \"consejos prácticos\"]\n  },\n  {\n    \"id\": \"piel-de-luna\",\n    \"nombre\": \"Piel de Luna\",\n    \"sector\": \"tatuajes\",\n    \"plataformas\": [\"Instagram\", \"TikTok\"],\n    \"tono\": \"artístico, misterioso, poético\",\n    \"pilares\": [\"proceso creativo\", \"diseños terminados\", \"cultura del tatuaje\"]\n  }\n] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-2-set-clients",
+      "name": "Set Clientes",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "trends-assignment",
+              "name": "tendencias",
+              "value": "={{ {\n  \"fitness\": {\n    \"semana\": \"2024-W12\",\n    \"tendencias\": [\n      \"Entrenamiento de zona 2 está en auge — cardio suave largo\",\n      \"Ayuno intermitente 16:8 como estilo de vida\",\n      \"Retos de 30 días virales en TikTok\",\n      \"Micro-workouts de 10 minutos en la pausa del trabajo\",\n      \"Proteína: debate whey vs plant-based\"\n    ]\n  },\n  \"legal\": {\n    \"semana\": \"2024-W12\",\n    \"tendencias\": [\n      \"Nueva regulación sobre herencias digitales en España\",\n      \"Auge de consultas sobre compraventa de primera vivienda\",\n      \"Divorcios express: qué es real y qué es mito\",\n      \"Notaría digital: firma electrónica avanzada\",\n      \"Protección de datos en contratos de trabajo\"\n    ]\n  },\n  \"tatuajes\": {\n    \"semana\": \"2024-W12\",\n    \"tendencias\": [\n      \"Fine line tattoos minimalistas siguen dominando\",\n      \"Tatuajes de acuarela con colores pastel\",\n      \"Revival del blackwork geométrico\",\n      \"Micro-realism en retratos y flores\",\n      \"Tatuajes de parejas (couple tattoos) en auge\"\n    ]\n  }\n} }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-3-set-trends",
+      "name": "Set Tendencias",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "clients",
+        "options": {}
+      },
+      "id": "node-4-split-in-batches",
+      "name": "Split por Cliente",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": "={{ $env.N8N_CLAUDE_API_KEY }}"
+            },
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ JSON.stringify({\n  \"model\": \"claude-opus-4-6\",\n  \"max_tokens\": 4096,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Eres un experto en social media para la agencia \\\"Narrativa Social\\\" de Barcelona. Genera el plan de contenido semanal completo para el siguiente cliente:\\n\\nCLIENTE: \" + $json.nombre + \"\\nSECTOR: \" + $json.sector + \"\\nPLATAFORMAS: \" + $json.plataformas.join(\", \") + \"\\nTONO: \" + $json.tono + \"\\nPILARES DE CONTENIDO: \" + $json.pilares.join(\", \") + \"\\n\\nTENDENCIAS ACTUALES DEL SECTOR:\\n\" + $('Set Tendencias').first().json.tendencias[$json.sector].tendencias.map((t, i) => (i+1) + \". \" + t).join(\"\\n\") + \"\\n\\nGenera exactamente la siguiente estructura en JSON válido (sin markdown, solo JSON puro):\\n{\\n  \\\"cliente\\\": \\\"nombre del cliente\\\",\\n  \\\"semana\\\": \\\"semana del año\\\",\\n  \\\"posts\\\": [\\n    {\\n      \\\"numero\\\": 1,\\n      \\\"plataforma\\\": \\\"plataforma\\\",\\n      \\\"pilar\\\": \\\"pilar de contenido\\\",\\n      \\\"titulo\\\": \\\"título del post\\\",\\n      \\\"copy\\\": \\\"copy completo del post listo para publicar\\\",\\n      \\\"hashtags\\\": [\\\"hashtag1\\\", \\\"hashtag2\\\"],\\n      \\\"formato\\\": \\\"imagen/carrusel/video\\\",\\n      \\\"dia_sugerido\\\": \\\"día de la semana\\\"\\n    }\\n  ],\\n  \\\"reels\\\": [\\n    {\\n      \\\"numero\\\": 1,\\n      \\\"plataforma\\\": \\\"plataforma\\\",\\n      \\\"gancho\\\": \\\"frase de gancho (primeros 3 segundos)\\\",\\n      \\\"estructura\\\": {\\n        \\\"intro\\\": \\\"descripción de los primeros 5 segundos\\\",\\n        \\\"desarrollo\\\": \\\"descripción del contenido principal\\\",\\n        \\\"cta\\\": \\\"llamada a la acción final\\\"\\n      },\\n      \\\"musica_sugerida\\\": \\\"tipo de música o trend de audio\\\",\\n      \\\"duracion_segundos\\\": 30\\n    }\\n  ],\\n  \\\"stories\\\": [\\n    {\\n      \\\"numero\\\": 1,\\n      \\\"plataforma\\\": \\\"Instagram\\\",\\n      \\\"copy\\\": \\\"texto de la story\\\",\\n      \\\"tipo_interaccion\\\": \\\"encuesta/pregunta/cuenta_atras/quiz/desliza\\\",\\n      \\\"pregunta_interaccion\\\": \\\"texto de la interacción si aplica\\\"\\n    }\\n  ],\\n  \\\"contenido_tendencia\\\": {\\n    \\\"tendencia_usada\\\": \\\"tendencia del sector que aprovecha\\\",\\n    \\\"formato\\\": \\\"tipo de contenido\\\",\\n    \\\"concepto\\\": \\\"descripción del concepto\\\",\\n    \\\"copy\\\": \\\"copy completo\\\",\\n    \\\"plataforma\\\": \\\"plataforma sugerida\\\"\\n  }\\n}\\n\\nREQUISITOS:\\n- Exactamente 5 posts con copy completo y entre 8-12 hashtags cada uno\\n- Exactamente 3 reels con gancho poderoso y estructura detallada\\n- Exactamente 5 stories con copy y tipo de interacción\\n- Exactamente 1 contenido de tendencia\\n- Todo el contenido adaptado al tono: \" + $json.tono + \"\\n- Distribuir los posts en diferentes días de la semana (Lunes a Viernes)\\n- Los hashtags deben mezclar populares y de nicho\\n- IMPORTANTE: Responde SOLO con el JSON, sin explicaciones ni markdown\"\n    }\n  ]\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": false
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "node-5-http-claude",
+      "name": "Claude API — Genera Contenido",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "client-id-assignment",
+              "name": "cliente_id",
+              "value": "={{ $('Split por Cliente').item.json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "client-name-assignment",
+              "name": "cliente_nombre",
+              "value": "={{ $('Split por Cliente').item.json.nombre }}",
+              "type": "string"
+            },
+            {
+              "id": "platforms-assignment",
+              "name": "plataformas",
+              "value": "={{ $('Split por Cliente').item.json.plataformas }}",
+              "type": "array"
+            },
+            {
+              "id": "plan-parsed-assignment",
+              "name": "plan_contenido",
+              "value": "={{ (() => { try { const raw = $json.content[0].text; return JSON.parse(raw); } catch(e) { return { error: 'No se pudo parsear la respuesta de Claude', raw: $json.content[0].text, mensaje: e.message }; } })() }}",
+              "type": "object"
+            },
+            {
+              "id": "tokens-assignment",
+              "name": "tokens_usados",
+              "value": "={{ $json.usage.input_tokens + $json.usage.output_tokens }}",
+              "type": "number"
+            },
+            {
+              "id": "status-assignment",
+              "name": "estado",
+              "value": "={{ $json.stop_reason === 'end_turn' ? 'generado' : 'incompleto' }}",
+              "type": "string"
+            },
+            {
+              "id": "timestamp-assignment",
+              "name": "generado_en",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-6-set-parse",
+      "name": "Parsear Respuesta Claude",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1340, 400]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "planes_clientes",
+        "options": {}
+      },
+      "id": "node-7-aggregate",
+      "name": "Agregar los 3 Clientes",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [1560, 400]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "agency-assignment",
+              "name": "agencia",
+              "value": "Narrativa Social — Barcelona",
+              "type": "string"
+            },
+            {
+              "id": "status-final-assignment",
+              "name": "estado",
+              "value": "COMPLETADO",
+              "type": "string"
+            },
+            {
+              "id": "total-clients-assignment",
+              "name": "total_clientes_procesados",
+              "value": "={{ $json.planes_clientes.length }}",
+              "type": "number"
+            },
+            {
+              "id": "clients-processed-assignment",
+              "name": "clientes_procesados",
+              "value": "={{ $json.planes_clientes.map(c => c.cliente_nombre) }}",
+              "type": "array"
+            },
+            {
+              "id": "total-posts-assignment",
+              "name": "total_posts_generados",
+              "value": "={{ $json.planes_clientes.reduce((acc, c) => acc + (c.plan_contenido.posts ? c.plan_contenido.posts.length : 0), 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "total-reels-assignment",
+              "name": "total_reels_generados",
+              "value": "={{ $json.planes_clientes.reduce((acc, c) => acc + (c.plan_contenido.reels ? c.plan_contenido.reels.length : 0), 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "total-stories-assignment",
+              "name": "total_stories_generadas",
+              "value": "={{ $json.planes_clientes.reduce((acc, c) => acc + (c.plan_contenido.stories ? c.plan_contenido.stories.length : 0), 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "total-tokens-assignment",
+              "name": "total_tokens_usados",
+              "value": "={{ $json.planes_clientes.reduce((acc, c) => acc + (c.tokens_usados || 0), 0) }}",
+              "type": "number"
+            },
+            {
+              "id": "timestamp-final-assignment",
+              "name": "timestamp_completado",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            },
+            {
+              "id": "message-assignment",
+              "name": "mensaje",
+              "value": "={{ '✅ Plan de contenido semanal generado para ' + $json.planes_clientes.length + ' clientes de Narrativa Social. Total: ' + $json.planes_clientes.reduce((acc, c) => acc + (c.plan_contenido.posts ? c.plan_contenido.posts.length : 0), 0) + ' posts, ' + $json.planes_clientes.reduce((acc, c) => acc + (c.plan_contenido.reels ? c.plan_contenido.reels.length : 0), 0) + ' reels, ' + $json.planes_clientes.reduce((acc, c) => acc + (c.plan_contenido.stories ? c.plan_contenido.stories.length : 0), 0) + ' stories.' }}",
+              "type": "string"
+            },
+            {
+              "id": "full-plan-assignment",
+              "name": "planes_completos",
+              "value": "={{ $json.planes_clientes }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-8-set-confirmation",
+      "name": "Resumen Final",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1780, 400]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Clientes": {
+      "main": [
+        [
+          {
+            "node": "Set Tendencias",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Tendencias": {
+      "main": [
+        [
+          {
+            "node": "Split por Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split por Cliente": {
+      "main": [
+        [
+          {
+            "node": "Claude API — Genera Contenido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude API — Genera Contenido": {
+      "main": [
+        [
+          {
+            "node": "Parsear Respuesta Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear Respuesta Claude": {
+      "main": [
+        [
+          {
+            "node": "Agregar los 3 Clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar los 3 Clientes": {
+      "main": [
+        [
+          {
+            "node": "Resumen Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "tag-autocontent",
+      "name": "AutoContent"
+    },
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "tag-narrativa-social",
+      "name": "Narrativa Social"
+    }
+  ],
+  "triggerCount": 0,
+  "updatedAt": "2024-01-01T00:00:00.000Z",
+  "versionId": "autocontent-v1"
+}
